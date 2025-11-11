@@ -1,16 +1,33 @@
-# Interview Practice App
+# Voice practice when you need to not sound so annoying
 
-A web application that helps you practice interview questions with audio and video recording capabilities and real-time captions.
+A long long time ago, I worked for an asshole named [@monteslu](https://github.com/monteslu). He was a real piece of work, but we were building this cool system
+called pagenodes at the time(which may still be around <https://pagenodes.com>). Basically it was a bit of a rewrite of [node-red](https://nodered.org/) but with a focus on web pages as the output medium instead of IoT devices. Over time as a beginning engineer I learned how to love the web apis built into chrome. One of my first modules I built for it was a speech to text module using the web speech api. I thought it was super cool at the time, and I still do. So I built this little app to help people practice interviews using that same api.
 
-## Features
+So recently I stopped working for a job, and decided to start interviewing again. That said I went ahead and built this little app to help me practice answering interview questions. It's pretty simplistic, and I have Features I would
+like to add. The goal is to not really use any react or any of that fancy bullshit. Just vanilla JS and webcomponents. If you want to contribute, then please do.
+
+I used goose for a bunch of this, because I didn't want to fiddle with the CSS as much. So shout out to the block [goose](https://block.github.io/goose/) for making my life easier.
+
+Can I do this better in react or svelte or whatever? Probably, but I don't want to, so meh.
+
+## Shit you can do
+
+Try it out at [https://look.imwithstupid.fun](https://look.imwithstupid.fun)
 
 - Record yourself answering common interview questions
 - Real-time speech-to-text captions
 - Video and audio recording
 - Playback of your recordings
-- Customizable question set
+- Customizable question set(sort of)
 - Multiple camera support with easy switching
 - Responsive design that works on desktop and mobile
+
+## Shit you **can't** do(yet)
+
+- [ ]track your face
+- [ ] assess your answers
+- [ ] Download your answers
+- [ ] Save your videos(may never happen, i don't want to pay for this)
 
 ## How to Use
 
@@ -33,6 +50,7 @@ A web application that helps you practice interview questions with audio and vid
 ## Technical Details
 
 This application is built with:
+
 - Vanilla JavaScript (no frameworks)
 - Web Components for modular architecture
 - MediaRecorder API for recording
@@ -59,17 +77,22 @@ This application is built with:
 ## Development
 
 To run locally with Makefile (recommended):
+
 1. Run `make serve` to start the server on port 8080
 2. Open `http://localhost:8080` in your browser
 3. To use a different port: `make serve PORT=8081`
 
 To run locally manually:
+
 1. Serve the files using a local web server:
+
    ```bash
    python3 -m http.server 8080
    ```
+
 2. Open `http://localhost:8080` in your browser
 
 To stop the server:
+
 - Press Ctrl+C in the terminal where the server is running
 - Or run `make clean` to kill any running Python HTTP servers
