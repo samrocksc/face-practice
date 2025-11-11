@@ -1,19 +1,20 @@
 <!doctype html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Interview Practice App</title>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>http://localhost:8000</title>
     <!-- Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- Custom Styles -->
-    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="styles.css" />
     <style>
-        body {
-            font-family: 'Comic Sans MS', 'Chalkboard SE', 'Marker Felt', sans-serif;
-        }
+      body {
+        font-family:
+          "Comic Sans MS", "Chalkboard SE", "Marker Felt", sans-serif;
+      }
     </style>
-</head>
+  </head>
   <body class="bg-[#f1da7d] min-h-screen p-4">
     <div
       class="max-w-6xl mx-auto bg-white/95 rounded-xl shadow-2xl overflow-hidden"
@@ -41,10 +42,7 @@
               id="camera-select"
               class="flex-1 min-w-[200px] p-2 border border-gray-300 rounded-lg"
             ></select>
-            <button
-              id="refresh-cameras"
-              class="nickelodeon-btn"
-            >
+            <button id="refresh-cameras" class="nickelodeon-btn">
               Refresh Cameras
             </button>
           </div>
@@ -65,6 +63,12 @@
           </div>
         </section>
       </main>
+      
+      <footer class="text-center p-4 border-t-4 border-black">
+        <a href="https://cowabunga.dev" target="_blank" class="nickelodeon-btn nickelodeon-btn-blue inline-block">
+          made by this guy
+        </a>
+      </footer>
     </div>
 
     <!-- Custom Web Components -->
