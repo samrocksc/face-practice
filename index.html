@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Interview Practice App</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Custom Styles -->
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body class="bg-gradient-to-br from-blue-900 via-red-700 to-blue-900 min-h-screen p-4">
+    <div class="max-w-6xl mx-auto bg-white/95 rounded-xl shadow-2xl overflow-hidden">
+        <header class="bg-gradient-to-r from-blue-800 to-blue-600 text-white p-6 text-center">
+            <h1 class="text-3xl md:text-4xl font-bold mb-2">Interview Practice</h1>
+            <p class="text-lg opacity-90">Record yourself answering questions with real-time captions</p>
+        </header>
+
+        <main class="p-4 md:p-8">
+            <!-- Interview Question Panel -->
+            <section class="bg-gray-100 rounded-lg p-6 mb-8 shadow-md">
+                <interview-question-panel></interview-question-panel>
+            </section>
+
+            <!-- Recording Area -->
+            <section class="bg-gray-100 rounded-lg p-6 mb-8 shadow-md">
+                <div class="flex flex-wrap items-center gap-4 mb-6">
+                    <label for="camera-select" class="font-semibold text-gray-700">Select Camera:</label>
+                    <select id="camera-select" class="flex-1 min-w-[200px] p-2 border border-gray-300 rounded-lg"></select>
+                    <button id="refresh-cameras" class="px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white font-medium rounded-lg transition duration-200">Refresh Cameras</button>
+                </div>
+                <recording-controls></recording-controls>
+            </section>
+
+            <!-- Recorded Media -->
+            <section class="bg-gray-100 rounded-lg p-6 shadow-md">
+                <h2 class="text-2xl font-bold text-gray-800 mb-4">Your Recordings</h2>
+                <div id="recordings-list" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    <!-- Recordings will be listed here -->
+                    <p class="text-gray-500 col-span-full text-center py-8">No recordings yet. Start recording to see them here.</p>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <!-- Custom Web Components -->
+    <script src="js/app.js" type="module"></script>
+</body>
+</html>
