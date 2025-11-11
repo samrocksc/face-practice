@@ -1,14 +1,19 @@
 <!doctype html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Interview Practice App</title>
     <!-- Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- Custom Styles -->
-    <link rel="stylesheet" href="styles.css" />
-  </head>
+    <link rel="stylesheet" href="styles.css">
+    <style>
+        body {
+            font-family: 'Comic Sans MS', 'Chalkboard SE', 'Marker Felt', sans-serif;
+        }
+    </style>
+</head>
   <body class="bg-[#f1da7d] min-h-screen p-4">
     <div
       class="max-w-6xl mx-auto bg-white/95 rounded-xl shadow-2xl overflow-hidden"
@@ -38,7 +43,7 @@
             ></select>
             <button
               id="refresh-cameras"
-              class="px-4 py-2 bg-[#f1da7d] hover:bg-[#451e82] text-white font-medium rounded-lg transition duration-200"
+              class="nickelodeon-btn"
             >
               Refresh Cameras
             </button>

@@ -30,15 +30,15 @@ class RecordingControls extends HTMLElement {
                 <div id="captions-display" class="captions-overlay">Speak to see captions here...</div>
             </div>
             
-            <div class="recording-controls flex justify-center gap-4 mb-6 flex-wrap">
-                <button id="start-recording" class="px-6 py-3 bg-red-500 hover:bg-red-600 text-white font-bold rounded-full shadow-lg transition duration-200">Start Recording</button>
-                <button id="stop-recording" class="px-6 py-3 bg-yellow-500 hover:bg-yellow-600 text-white font-bold rounded-full shadow-lg transition duration-200 disabled:opacity-50 disabled:cursor-not-allowed" disabled>Stop Recording</button>
-                <button id="playback" class="px-6 py-3 bg-green-500 hover:bg-green-600 text-white font-bold rounded-full shadow-lg transition duration-200 disabled:opacity-50 disabled:cursor-not-allowed" disabled>Play Recording</button>
+            <div class="recording-controls">
+                <button id="start-recording" class="nickelodeon-btn nickelodeon-btn-red">Start Recording</button>
+                <button id="stop-recording" class="nickelodeon-btn nickelodeon-btn-blue" disabled>Stop Recording</button>
+                <button id="playback" class="nickelodeon-btn nickelodeon-btn-green" disabled>Play Recording</button>
             </div>
             
-            <div class="flex justify-center items-center gap-2">
+            <div class="recording-status">
                 <span id="recording-indicator" class="recording-dot hidden"></span>
-                <span id="recording-time" class="text-lg font-semibold text-gray-700">00:00</span>
+                <span id="recording-time" class="text-lg font-bold text-gray-800">00:00</span>
             </div>
         `;
     }
@@ -292,15 +292,15 @@ class RecordingControls extends HTMLElement {
             const question = questionDisplay ? questionDisplay.textContent : 'Interview Practice';
             
             const recordingItem = document.createElement('div');
-            recordingItem.className = 'recording-item bg-white rounded-lg overflow-hidden shadow-md hover:shadow-lg transition-shadow duration-300';
+            recordingItem.className = 'recording-item';
             recordingItem.innerHTML = `
                 <video controls class="w-full h-48 object-cover"></video>
                 <div class="recording-info p-4">
                     <h3 class="text-lg font-bold text-gray-800 mb-2">${question}</h3>
                     <p class="text-gray-600 text-sm mb-4">${new Date().toLocaleString()}</p>
                     <div class="recording-actions flex gap-2">
-                        <button class="play-recording flex-1 px-3 py-2 bg-blue-500 hover:bg-blue-600 text-white font-medium rounded transition duration-200">Play</button>
-                        <button class="delete-recording flex-1 px-3 py-2 bg-red-500 hover:bg-red-600 text-white font-medium rounded transition duration-200">Delete</button>
+                        <button class="play-recording nickelodeon-btn nickelodeon-btn-blue flex-1">Play</button>
+                        <button class="delete-recording nickelodeon-btn nickelodeon-btn-red flex-1">Delete</button>
                     </div>
                 </div>
             `;

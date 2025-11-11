@@ -27,9 +27,9 @@ class InterviewQuestionPanel extends HTMLElement {
                 <p id="current-question" class="text-gray-700">${this.questions[this.currentQuestionIndex]}</p>
             </div>
             <div class="question-controls">
-                <button id="prev-question" class="px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white font-medium rounded-lg">Previous</button>
-                <button id="next-question" class="px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white font-medium rounded-lg">Next</button>
-                <button id="add-question" class="px-4 py-2 bg-green-500 hover:bg-green-600 text-white font-medium rounded-lg">Add Question</button>
+                <button id="prev-question" class="nickelodeon-btn">Previous</button>
+                <button id="next-question" class="nickelodeon-btn">Next</button>
+                <button id="add-question" class="nickelodeon-btn nickelodeon-btn-green">Add Question</button>
             </div>
         `;
     }
