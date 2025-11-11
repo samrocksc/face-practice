@@ -25,6 +25,7 @@ Try it out at [https://look.imwithstupid.fun](https://look.imwithstupid.fun)
 ## Shit you **can't** do(yet)
 
 - [ ]track your face
+- (write markdown)
 - [ ] assess your answers
 - [ ] Download your answers
 - [ ] Save your videos(may never happen, i don't want to pay for this)
