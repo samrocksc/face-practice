@@ -21,7 +21,7 @@ class InterviewQuestionPanel extends HTMLElement {
     }
 
     render() {
-        this.innerHTML = `
+        this.innerHTML = /* html */ `
             <h2 class="text-2xl font-bold text-gray-800 mb-4">Interview Questions</h2>
             <div class="question-display">
                 <p id="current-question" class="text-gray-700">${this.questions[this.currentQuestionIndex]}</p>
