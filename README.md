@@ -3,6 +3,8 @@
 A long long time ago, I worked for an asshole named [@monteslu](https://github.com/monteslu). He was a real piece of work, but we were building this cool system
 called pagenodes at the time(which may still be around <https://pagenodes.com>). Basically it was a bit of a rewrite of [node-red](https://nodered.org/) but with a focus on web pages as the output medium instead of IoT devices. Over time as a beginning engineer I learned how to love the web apis built into chrome. One of my first modules I built for it was a speech to text module using the web speech api. I thought it was super cool at the time, and I still do. So I built this little app to help people practice interviews using that same api.
 
+I've had the CSS for this laying around for a while, pre LLM for sure, but it wasn't great. I fed it into goose, and had it extend it, and it looks a lot better now.
+
 So recently I stopped working for a job, and decided to start interviewing again. That said I went ahead and built this little app to help me practice answering interview questions. It's pretty simplistic, and I have Features I would
 like to add. The goal is to not really use any react or any of that fancy bullshit. Just vanilla JS and webcomponents. If you want to contribute, then please do.
 

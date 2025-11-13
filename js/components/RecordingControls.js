@@ -1,4 +1,6 @@
 // js/components/RecordingControls.js
+import recordingDB from "../utils/RecordingDatabase.js";
+
 class RecordingControls extends HTMLElement {
   constructor() {
     super();
@@ -11,6 +13,7 @@ class RecordingControls extends HTMLElement {
     this.isRecording = false;
     this.selectedCameraId = null;
     this.cameras = [];
+    this.transcript = ""; // Store speech recognition transcript
   }
 
   connectedCallback() {
@@ -21,6 +24,9 @@ class RecordingControls extends HTMLElement {
       this.enumerateCameras();
     });
     this.initializeSpeechRecognition();
+
+    // Load existing recordings from IndexedDB
+    this.loadRecordingsFromDB();
   }
 
   render() {
@@ -54,124 +60,71 @@ class RecordingControls extends HTMLElement {
       this.playRecording(),
     );
 
-    // Set up camera selection events
-    document.getElementById("camera-select").addEventListener("change", (e) => {
-      this.selectedCameraId = e.target.value;
-      this.switchCamera();
-    });
+    // Camera selection
+    const cameraSelect = this.querySelector("#camera-select");
+    if (cameraSelect) {
+      cameraSelect.addEventListener("change", (e) => {
+        this.selectedCameraId = e.target.value;
+        this.initializeCamera();
+      });
+    }
 
-    document.getElementById("refresh-cameras").addEventListener("click", () => {
-      this.enumerateCameras();
-    });
+    // Refresh cameras button
+    const refreshButton = this.querySelector("#refresh-cameras");
+    if (refreshButton) {
+      refreshButton.addEventListener("click", () => this.enumerateCameras());
+    }
+  }
+
+  async initializeCamera() {
+    try {
+      // Stop existing stream if any
+      if (this.stream) {
+        this.stream.getTracks().forEach((track) => track.stop());
+      }
+
+      const constraints = {
+        video: {
+          deviceId: this.selectedCameraId
+            ? { exact: this.selectedCameraId }
+            : undefined,
+        },
+        audio: true,
+      };
+
+      this.stream = await navigator.mediaDevices.getUserMedia(constraints);
+      const video = this.querySelector("#video-preview");
+      if (video) {
+        video.srcObject = this.stream;
+      }
+    } catch (error) {
+      console.error("Error accessing camera:", error);
+      alert("Could not access the camera. Please check permissions.");
+    }
   }
 
   async enumerateCameras() {
     try {
-      // First, get devices without labels (may be empty if permissions not granted)
-      let devices = await navigator.mediaDevices.enumerateDevices();
-      let videoDevices = devices.filter(
-        (device) => device.kind === "videoinput",
-      );
+      const devices = await navigator.mediaDevices.enumerateDevices();
+      this.cameras = devices.filter((device) => device.kind === "videoinput");
 
-      // If we don't have labels, we need to request camera access first
-      if (videoDevices.length > 0 && !videoDevices[0].label) {
-        // We already have camera access, but labels might be empty
-        // Stop current stream temporarily
-        if (this.stream) {
-          this.stream.getTracks().forEach((track) => track.stop());
-        }
-
-        // Request access again to get labels
-        const tempStream = await navigator.mediaDevices.getUserMedia({
-          video: true,
+      const cameraSelect = this.querySelector("#camera-select");
+      if (cameraSelect) {
+        cameraSelect.innerHTML = "";
+        this.cameras.forEach((camera, index) => {
+          const option = document.createElement("option");
+          option.value = camera.deviceId;
+          option.textContent = camera.label || `Camera ${index + 1}`;
+          cameraSelect.appendChild(option);
         });
-        // Now enumerate devices again - labels should be available
-        devices = await navigator.mediaDevices.enumerateDevices();
-        videoDevices = devices.filter((device) => device.kind === "videoinput");
-
-        // Stop temporary stream
-        tempStream.getTracks().forEach((track) => track.stop());
-
-        // Restore original stream if we had one
-        if (this.stream) {
-          this.initializeCamera();
-        }
-      }
-
-      this.cameras = videoDevices;
-
-      const cameraSelect = document.getElementById("camera-select");
-      cameraSelect.innerHTML = "";
-
-      if (this.cameras.length === 0) {
-        const option = document.createElement("option");
-        option.value = "";
-        option.textContent = "No cameras found";
-        cameraSelect.appendChild(option);
-        return;
-      }
-
-      // Add cameras to the dropdown
-      this.cameras.forEach((camera, index) => {
-        const option = document.createElement("option");
-        option.value = camera.deviceId;
-        option.textContent = camera.label || `Camera ${index + 1}`;
-        cameraSelect.appendChild(option);
-      });
-
-      // Select the first camera by default if none selected
-      if (!this.selectedCameraId && this.cameras.length > 0) {
-        this.selectedCameraId = this.cameras[0].deviceId;
-        cameraSelect.value = this.selectedCameraId;
       }
     } catch (error) {
       console.error("Error enumerating cameras:", error);
     }
   }
 
-  async initializeCamera() {
-    try {
-      // Request camera and microphone access
-      this.stream = await navigator.mediaDevices.getUserMedia({
-        video: true,
-        audio: true,
-      });
-
-      const videoPreview = this.querySelector("#video-preview");
-      videoPreview.srcObject = this.stream;
-    } catch (error) {
-      console.error("Error accessing camera and microphone:", error);
-      alert(
-        "Could not access camera and microphone. Please check permissions.",
-      );
-    }
-  }
-
-  async switchCamera() {
-    if (!this.selectedCameraId) return;
-
-    try {
-      // Stop the current stream
-      if (this.stream) {
-        this.stream.getTracks().forEach((track) => track.stop());
-      }
-
-      // Start a new stream with the selected camera
-      this.stream = await navigator.mediaDevices.getUserMedia({
-        video: { deviceId: { exact: this.selectedCameraId } },
-        audio: true,
-      });
-
-      const videoPreview = this.querySelector("#video-preview");
-      videoPreview.srcObject = this.stream;
-    } catch (error) {
-      console.error("Error switching camera:", error);
-      alert("Could not switch to the selected camera.");
-    }
-  }
-
   initializeSpeechRecognition() {
-    // Check if the browser supports SpeechRecognition
+    // Check if SpeechRecognition is available
     const SpeechRecognition =
       window.SpeechRecognition || window.webkitSpeechRecognition;
 
@@ -179,11 +132,10 @@ class RecordingControls extends HTMLElement {
       this.speechRecognition = new SpeechRecognition();
       this.speechRecognition.continuous = true;
       this.speechRecognition.interimResults = true;
-      this.speechRecognition.lang = "en-US";
 
       this.speechRecognition.onresult = (event) => {
-        let finalTranscript = "";
         let interimTranscript = "";
+        let finalTranscript = "";
 
         for (let i = event.resultIndex; i < event.results.length; i++) {
           const transcript = event.results[i][0].transcript;
@@ -194,12 +146,14 @@ class RecordingControls extends HTMLElement {
           }
         }
 
+        // Update the transcript property
+        this.transcript = finalTranscript + interimTranscript;
+
+        // Update captions display
         const captionsDisplay = this.querySelector("#captions-display");
         if (captionsDisplay) {
           captionsDisplay.textContent =
-            finalTranscript ||
-            interimTranscript ||
-            "Speak to see captions here...";
+            this.transcript || "Speak to see captions here...";
         }
       };
 
@@ -207,58 +161,74 @@ class RecordingControls extends HTMLElement {
         console.error("Speech recognition error:", event.error);
       };
     } else {
-      console.warn("Speech recognition not supported in this browser.");
+      console.log("Speech recognition not supported in this browser");
+
+      // Update captions display to show that speech recognition is not available
       const captionsDisplay = this.querySelector("#captions-display");
       if (captionsDisplay) {
-        captionsDisplay.textContent = "Captions not supported in this browser";
+        captionsDisplay.textContent =
+          "Speech recognition not available in this browser";
       }
     }
   }
 
-  startRecording() {
+  async startRecording() {
     if (!this.stream) {
-      alert("Camera and microphone not initialized. Please refresh the page.");
+      alert("Please allow camera and microphone access first.");
       return;
     }
 
     this.recordedChunks = [];
-    this.mediaRecorder = new MediaRecorder(this.stream, {
-      mimeType: "video/webm; codecs=vp9",
-    });
+    this.transcript = ""; // Reset transcript
 
-    this.mediaRecorder.ondataavailable = (event) => {
-      if (event.data.size > 0) {
-        this.recordedChunks.push(event.data);
-      }
-    };
-
-    this.mediaRecorder.onstop = () => {
-      this.saveRecording();
-    };
-
-    this.mediaRecorder.start();
-    this.isRecording = true;
-
-    // Start speech recognition if available
-    if (this.speechRecognition) {
-      this.speechRecognition.start();
+    // Clear captions display
+    const captionsDisplay = this.querySelector("#captions-display");
+    if (captionsDisplay) {
+      captionsDisplay.textContent = "Recording... Speak now!";
     }
 
-    // Update UI
-    this.querySelector("#start-recording").disabled = true;
-    this.querySelector("#stop-recording").disabled = false;
-    this.querySelector("#playback").disabled = true;
+    try {
+      this.mediaRecorder = new MediaRecorder(this.stream, {
+        mimeType: "video/webm",
+      });
 
-    const recordingIndicator = this.querySelector("#recording-indicator");
-    recordingIndicator.classList.remove("hidden");
+      this.mediaRecorder.ondataavailable = (event) => {
+        if (event.data.size > 0) {
+          this.recordedChunks.push(event.data);
+        }
+      };
 
-    // Start recording timer
-    this.recordingStartTime = Date.now();
-    this.updateRecordingTime();
-    this.recordingInterval = setInterval(
-      () => this.updateRecordingTime(),
-      1000,
-    );
+      this.mediaRecorder.onstop = () => {
+        this.saveRecording();
+      };
+
+      this.mediaRecorder.start();
+      this.isRecording = true;
+
+      // Start speech recognition if available
+      if (this.speechRecognition) {
+        this.speechRecognition.start();
+      }
+
+      // Update UI
+      this.querySelector("#start-recording").disabled = true;
+      this.querySelector("#stop-recording").disabled = false;
+      this.querySelector("#playback").disabled = true;
+
+      const recordingIndicator = this.querySelector("#recording-indicator");
+      recordingIndicator.classList.remove("hidden");
+
+      // Start recording timer
+      this.recordingStartTime = Date.now();
+      this.updateRecordingTime();
+      this.recordingInterval = setInterval(
+        () => this.updateRecordingTime(),
+        1000,
+      );
+    } catch (error) {
+      console.error("Error starting recording:", error);
+      alert("Error starting recording: " + error.message);
+    }
   }
 
   stopRecording() {
@@ -298,8 +268,40 @@ class RecordingControls extends HTMLElement {
     }
   }
 
-  saveRecording() {
+  async saveRecording() {
     const blob = new Blob(this.recordedChunks, { type: "video/webm" });
+
+    // Get the current question
+    const questionDisplay = document.querySelector("#current-question");
+    const question = questionDisplay
+      ? questionDisplay.textContent
+      : "Interview Practice";
+
+    // Save to IndexedDB
+    try {
+      const recordingId = await recordingDB.addRecording({
+        question: question,
+        transcript: this.transcript,
+        videoBlob: blob,
+        timestamp: new Date().toISOString(),
+      });
+
+      console.log("Recording saved to IndexedDB with ID:", recordingId);
+
+      // Also display in UI as before
+      this.displayRecordingInUI(blob, question, this.transcript, recordingId);
+    } catch (error) {
+      console.error("Error saving recording to IndexedDB:", error);
+      alert(
+        "Failed to save recording to database. Recording will only be available in this session.",
+      );
+
+      // Still display in UI even if DB save fails
+      this.displayRecordingInUI(blob, question, this.transcript);
+    }
+  }
+
+  displayRecordingInUI(blob, question, transcript, recordingId = null) {
     const url = URL.createObjectURL(blob);
 
     // Create a recording item
@@ -310,18 +312,18 @@ class RecordingControls extends HTMLElement {
         recordingsList.innerHTML = "";
       }
 
-      const questionDisplay = document.querySelector("#current-question");
-      const question = questionDisplay
-        ? questionDisplay.textContent
-        : "Interview Practice";
-
       const recordingItem = document.createElement("div");
       recordingItem.className = "recording-item";
+      recordingItem.dataset.recordingId = recordingId || Date.now(); // Use DB ID or timestamp
+
+      console.log("recordingsList", recordingsList);
+
       recordingItem.innerHTML = /* html */ `
                 <video controls class="w-full h-48 object-cover"></video>
                 <div class="recording-info p-4">
                     <h3 class="text-lg font-bold text-gray-800 mb-2">${question}</h3>
-                    <p class="text-gray-600 text-sm mb-4">${new Date().toLocaleString()}</p>
+                    <p class="text-gray-600 text-sm mb-2">Recorded: ${new Date().toLocaleString()}</p>
+                    ${transcript ? `<p class="text-gray-700 text-sm mb-4 bg-gray-100 p-2 rounded"><strong>Transcript:</strong> ${transcript}</p>` : ""}
                     <div class="recording-actions flex gap-2">
                         <button class="play-recording nickelodeon-btn nickelodeon-btn-blue flex-1">Play</button>
                         <button class="delete-recording nickelodeon-btn nickelodeon-btn-red flex-1">Delete</button>
@@ -338,8 +340,19 @@ class RecordingControls extends HTMLElement {
       });
 
       const deleteButton = recordingItem.querySelector(".delete-recording");
-      deleteButton.addEventListener("click", () => {
+      deleteButton.addEventListener("click", async () => {
         recordingItem.remove();
+
+        // Delete from IndexedDB if it has an ID
+        if (recordingId) {
+          try {
+            await recordingDB.deleteRecording(recordingId);
+            console.log("Recording deleted from IndexedDB");
+          } catch (error) {
+            console.error("Error deleting recording from IndexedDB:", error);
+          }
+        }
+
         // Show message if no recordings left
         if (recordingsList.children.length === 0) {
           recordingsList.innerHTML =
@@ -348,6 +361,34 @@ class RecordingControls extends HTMLElement {
       });
 
       recordingsList.prepend(recordingItem);
+    }
+  }
+
+  async loadRecordingsFromDB() {
+    try {
+      const recordings = await recordingDB.getAllRecordings();
+      console.log("Loaded recordings from DB:", recordings);
+
+      const recordingsList = document.querySelector("#recordings-list");
+      if (recordingsList && recordings.length > 0) {
+        // Clear the initial message
+        recordingsList.innerHTML = "";
+
+        // Display each recording (in reverse order to show newest first)
+        for (let i = recordings.length - 1; i >= 0; i--) {
+          const recording = recordings[i];
+
+          // Use the videoBlob that was reconstructed from the database
+          this.displayRecordingInUI(
+            recording.videoBlob,
+            recording.question,
+            recording.transcript,
+            recording.id,
+          );
+        }
+      }
+    } catch (error) {
+      console.error("Error loading recordings from IndexedDB:", error);
     }
   }
 

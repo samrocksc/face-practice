@@ -1,0 +1,146 @@
+# Interview Practice App - Goose Hints
+
+## Project Overview
+This is a web-based interview practice application that allows users to:
+1. Practice answering common interview questions
+2. Record their responses using webcam and microphone
+3. Review their recordings to improve interview skills
+
+## Key Technologies
+- HTML5, CSS3, JavaScript (ES6+)
+- Web Components (custom elements)
+- MediaDevices API for camera/microphone access
+- MediaRecorder API for recording
+- Web Speech API for captions (optional)
+- Tailwind CSS CDN
+- Custom "Nickelodeon-style" CSS styling
+
+## Project Structure
+```
+.
+├── index.html              # Main HTML file with component placeholders
+├── styles.css              # Custom styling with Nickelodeon aesthetic
+├── js/
+│   ├── app.js              # Main application entry point
+│   └── components/
+│       ├── InterviewQuestionPanel.js    # Question management component
+│       └── RecordingControls.js         # Recording functionality component
+```
+
+## Web Components
+
+### InterviewQuestionPanel
+- Custom element: `<interview-question-panel>`
+- Purpose: Display and navigate interview questions
+- Key methods:
+  - previousQuestion() / nextQuestion() - Navigation
+  - addQuestion() - Add custom questions
+  - updateQuestionDisplay() - Update UI with current question
+
+### RecordingControls
+- Custom element: `<recording-controls>`
+- Purpose: Handle all recording functionality
+- Key features:
+  - Camera selection and preview
+  - Start/stop recording
+  - Speech recognition captions (if available)
+  - Recording timer
+  - Save and playback recordings
+
+## CSS Styling
+- Uses Tailwind CSS CDN for base styles
+- Custom "Nickelodeon-style" styling with:
+  - Comic Sans MS font
+  - Bright colors (#f1da7d background, green header)
+  - Thick black borders and shadow effects
+  - Playful button designs
+- Responsive design for mobile/desktop
+
+## Key Files to Modify
+1. **js/components/InterviewQuestionPanel.js** - For question-related changes
+2. **js/components/RecordingControls.js** - For recording functionality changes
+3. **styles.css** - For styling changes
+4. **index.html** - For structural changes or adding new components
+
+## Common Tasks
+
+### Adding New Questions
+Modify the `questions` array in InterviewQuestionPanel.js constructor
+
+### Adding New Recording Features
+Work in RecordingControls.js, particularly:
+- startRecording() / stopRecording() methods
+- saveRecording() for saving new recording types
+- render() method for UI changes
+
+### Styling Changes
+Modify styles.css for general styling or component-specific styles
+
+### Adding New Components
+1. Create new JS file in components/ directory
+2. Define custom element class extending HTMLElement
+3. Register with customElements.define()
+4. Import in app.js
+5. Add to index.html
+
+## Browser APIs Used
+- MediaDevices.getUserMedia() - Camera/microphone access
+- MediaRecorder - Video/audio recording
+- Web Speech API (SpeechRecognition) - Captions (optional)
+- Custom Elements API - Web components
+
+## Important Notes
+- All components are loaded as ES6 modules (type="module" in script tag)
+- Uses modern JavaScript features (async/await, arrow functions, etc.)
+- Security: Requires HTTPS for camera/microphone access in production
+- Styling: Mix of Tailwind classes and custom CSS
+- Responsive design works on mobile and desktop
+
+## Quick Start for Modifications
+1. To add new interview questions: Edit InterviewQuestionPanel.js
+2. To modify recording behavior: Edit RecordingControls.js
+3. To change styling: Edit styles.css
+4. To add new features: Create new component or extend existing ones
+5. To test changes: Simply open index.html in a browser
+
+## Dependencies
+- None (pure HTML/CSS/JS)
+- External CDN: Tailwind CSS
+- Browser must support:
+  - Custom Elements
+  - MediaRecorder API
+  - MediaDevices API
+  - ES6 Modules
+
+## IndexedDB Persistence
+
+### New Feature: Persistent Recording Storage
+Recordings are now saved to IndexedDB with:
+1. The interview question that was active when recording started
+2. The speech recognition transcript (if available)
+3. The binary video data
+
+### Key Files
+- `js/utils/RecordingDatabase.js` - IndexedDB wrapper utility
+- `js/components/RecordingControls.js` - Updated to use IndexedDB
+
+### How It Works
+1. When a recording is stopped, it's saved to IndexedDB via `recordingDB.addRecording()`
+2. On app initialization, existing recordings are loaded from IndexedDB via `recordingDB.getAllRecordings()`
+3. When a recording is deleted from the UI, it's also removed from IndexedDB via `recordingDB.deleteRecording()`
+
+### Data Structure
+Each recording in IndexedDB contains:
+- `id`: Auto-generated ID
+- `question`: The interview question text
+- `transcript`: Speech recognition transcript
+- `videoData`: Video binary data (stored as ArrayBuffer)
+- `videoType`: MIME type of the video
+- `timestamp`: ISO timestamp of when recording was saved
+
+### Important Notes for Development
+1. IndexedDB operations are asynchronous
+2. Binary data is stored as ArrayBuffers for compatibility
+3. The database is automatically initialized on first use
+4. Error handling is implemented for all DB operations
+5. Recordings persist between browser sessions
