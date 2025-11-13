@@ -50,13 +50,13 @@ class RecordingDatabase {
         transcript: recording.transcript,
         videoData: arrayBuffer, // Store as ArrayBuffer
         videoType: recording.videoBlob.type, // Store the MIME type
-        timestamp: new Date().toISOString(),
-        id: Date.now(), // Simple ID generation
+        timestamp: new Date().toISOString()
+        // Don't set ID - let IndexedDB auto-generate it
       };
 
       const request = store.add(recordingData);
 
-      request.onsuccess = () => resolve(recordingData.id);
+      request.onsuccess = () => resolve(request.result); // This will be the auto-generated ID
       request.onerror = () => reject(request.error);
     });
   }
@@ -85,7 +85,7 @@ class RecordingDatabase {
   }
 
   async getAllRecordings() {
-    console.log("gettin recordings");
+    console.log("Getting recordings from DB");
     if (!this.db) await this.init();
 
     return new Promise((resolve, reject) => {

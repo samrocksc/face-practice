@@ -1,5 +1,5 @@
 // js/components/RecordingControls.js
-import recordingDB from "../utils/RecordingDatabase.js";
+import recordingDB from '../utils/RecordingDatabase.js';
 
 class RecordingControls extends HTMLElement {
   constructor() {
@@ -13,7 +13,7 @@ class RecordingControls extends HTMLElement {
     this.isRecording = false;
     this.selectedCameraId = null;
     this.cameras = [];
-    this.transcript = ""; // Store speech recognition transcript
+    this.transcript = ''; // Store speech recognition transcript
   }
 
   connectedCallback() {
@@ -24,13 +24,15 @@ class RecordingControls extends HTMLElement {
       this.enumerateCameras();
     });
     this.initializeSpeechRecognition();
-
-    // Load existing recordings from IndexedDB
-    this.loadRecordingsFromDB();
+    
+    // Load existing recordings from IndexedDB after a short delay to ensure DOM is ready
+    setTimeout(() => {
+      this.loadRecordingsFromDB();
+    }, 100);
   }
 
   render() {
-    this.innerHTML = /* html */ `
+    this.innerHTML = /* html */`
             <div class="video-container">
                 <video id="video-preview" autoplay muted></video>
                 <div id="captions-display" class="captions-overlay">Speak to see captions here...</div>
@@ -84,11 +86,7 @@ class RecordingControls extends HTMLElement {
       }
 
       const constraints = {
-        video: {
-          deviceId: this.selectedCameraId
-            ? { exact: this.selectedCameraId }
-            : undefined,
-        },
+        video: { deviceId: this.selectedCameraId ? { exact: this.selectedCameraId } : undefined },
         audio: true,
       };
 
@@ -125,49 +123,46 @@ class RecordingControls extends HTMLElement {
 
   initializeSpeechRecognition() {
     // Check if SpeechRecognition is available
-    const SpeechRecognition =
-      window.SpeechRecognition || window.webkitSpeechRecognition;
-
+    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+    
     if (SpeechRecognition) {
       this.speechRecognition = new SpeechRecognition();
       this.speechRecognition.continuous = true;
       this.speechRecognition.interimResults = true;
-
+      
       this.speechRecognition.onresult = (event) => {
-        let interimTranscript = "";
-        let finalTranscript = "";
-
+        let interimTranscript = '';
+        let finalTranscript = '';
+        
         for (let i = event.resultIndex; i < event.results.length; i++) {
           const transcript = event.results[i][0].transcript;
           if (event.results[i].isFinal) {
-            finalTranscript += transcript + " ";
+            finalTranscript += transcript + ' ';
           } else {
             interimTranscript += transcript;
           }
         }
-
+        
         // Update the transcript property
         this.transcript = finalTranscript + interimTranscript;
-
+        
         // Update captions display
-        const captionsDisplay = this.querySelector("#captions-display");
+        const captionsDisplay = this.querySelector("#captitions-display");
         if (captionsDisplay) {
-          captionsDisplay.textContent =
-            this.transcript || "Speak to see captions here...";
+          captionsDisplay.textContent = this.transcript || "Speak to see captions here...";
         }
       };
-
+      
       this.speechRecognition.onerror = (event) => {
         console.error("Speech recognition error:", event.error);
       };
     } else {
       console.log("Speech recognition not supported in this browser");
-
+      
       // Update captions display to show that speech recognition is not available
       const captionsDisplay = this.querySelector("#captions-display");
       if (captionsDisplay) {
-        captionsDisplay.textContent =
-          "Speech recognition not available in this browser";
+        captionsDisplay.textContent = "Speech recognition not available in this browser";
       }
     }
   }
@@ -179,8 +174,8 @@ class RecordingControls extends HTMLElement {
     }
 
     this.recordedChunks = [];
-    this.transcript = ""; // Reset transcript
-
+    this.transcript = ''; // Reset transcript
+    
     // Clear captions display
     const captionsDisplay = this.querySelector("#captions-display");
     if (captionsDisplay) {
@@ -188,9 +183,7 @@ class RecordingControls extends HTMLElement {
     }
 
     try {
-      this.mediaRecorder = new MediaRecorder(this.stream, {
-        mimeType: "video/webm",
-      });
+      this.mediaRecorder = new MediaRecorder(this.stream, { mimeType: "video/webm" });
 
       this.mediaRecorder.ondataavailable = (event) => {
         if (event.data.size > 0) {
@@ -270,7 +263,7 @@ class RecordingControls extends HTMLElement {
 
   async saveRecording() {
     const blob = new Blob(this.recordedChunks, { type: "video/webm" });
-
+    
     // Get the current question
     const questionDisplay = document.querySelector("#current-question");
     const question = questionDisplay
@@ -283,24 +276,22 @@ class RecordingControls extends HTMLElement {
         question: question,
         transcript: this.transcript,
         videoBlob: blob,
-        timestamp: new Date().toISOString(),
+        timestamp: new Date().toISOString()
       });
-
+      
       console.log("Recording saved to IndexedDB with ID:", recordingId);
-
+      
       // Also display in UI as before
       this.displayRecordingInUI(blob, question, this.transcript, recordingId);
     } catch (error) {
       console.error("Error saving recording to IndexedDB:", error);
-      alert(
-        "Failed to save recording to database. Recording will only be available in this session.",
-      );
-
+      alert("Failed to save recording to database. Recording will only be available in this session.");
+      
       // Still display in UI even if DB save fails
       this.displayRecordingInUI(blob, question, this.transcript);
     }
   }
-
+  
   displayRecordingInUI(blob, question, transcript, recordingId = null) {
     const url = URL.createObjectURL(blob);
 
@@ -314,16 +305,16 @@ class RecordingControls extends HTMLElement {
 
       const recordingItem = document.createElement("div");
       recordingItem.className = "recording-item";
-      recordingItem.dataset.recordingId = recordingId || Date.now(); // Use DB ID or timestamp
-
-      console.log("recordingsList", recordingsList);
-
+      if (recordingId) {
+        recordingItem.dataset.recordingId = recordingId; // Use DB ID
+      }
+      
       recordingItem.innerHTML = /* html */ `
                 <video controls class="w-full h-48 object-cover"></video>
                 <div class="recording-info p-4">
                     <h3 class="text-lg font-bold text-gray-800 mb-2">${question}</h3>
                     <p class="text-gray-600 text-sm mb-2">Recorded: ${new Date().toLocaleString()}</p>
-                    ${transcript ? `<p class="text-gray-700 text-sm mb-4 bg-gray-100 p-2 rounded"><strong>Transcript:</strong> ${transcript}</p>` : ""}
+                    ${transcript ? `<p class="text-gray-700 text-sm mb-4 bg-gray-100 p-2 rounded"><strong>Transcript:</strong> ${transcript}</p>` : ''}
                     <div class="recording-actions flex gap-2">
                         <button class="play-recording nickelodeon-btn nickelodeon-btn-blue flex-1">Play</button>
                         <button class="delete-recording nickelodeon-btn nickelodeon-btn-red flex-1">Delete</button>
@@ -342,7 +333,7 @@ class RecordingControls extends HTMLElement {
       const deleteButton = recordingItem.querySelector(".delete-recording");
       deleteButton.addEventListener("click", async () => {
         recordingItem.remove();
-
+        
         // Delete from IndexedDB if it has an ID
         if (recordingId) {
           try {
@@ -352,7 +343,7 @@ class RecordingControls extends HTMLElement {
             console.error("Error deleting recording from IndexedDB:", error);
           }
         }
-
+        
         // Show message if no recordings left
         if (recordingsList.children.length === 0) {
           recordingsList.innerHTML =
@@ -368,23 +359,76 @@ class RecordingControls extends HTMLElement {
     try {
       const recordings = await recordingDB.getAllRecordings();
       console.log("Loaded recordings from DB:", recordings);
-
+      
       const recordingsList = document.querySelector("#recordings-list");
       if (recordingsList && recordings.length > 0) {
         // Clear the initial message
-        recordingsList.innerHTML = "";
-
-        // Display each recording (in reverse order to show newest first)
-        for (let i = recordings.length - 1; i >= 0; i--) {
+        if (recordingsList.querySelector("p")) {
+          recordingsList.innerHTML = "";
+        }
+        
+        // Display each recording in chronological order (oldest first)
+        // We use appendChild to add them in the correct order
+        for (let i = 0; i < recordings.length; i++) {
           const recording = recordings[i];
-
-          // Use the videoBlob that was reconstructed from the database
-          this.displayRecordingInUI(
-            recording.videoBlob,
-            recording.question,
-            recording.transcript,
-            recording.id,
-          );
+          
+          // Create a temporary container to build the recording item
+          const tempContainer = document.createElement("div");
+          
+          // Create the recording item
+          const recordingItem = document.createElement("div");
+          recordingItem.className = "recording-item";
+          if (recording.id) {
+            recordingItem.dataset.recordingId = recording.id;
+          }
+          
+          recordingItem.innerHTML = /* html */ `
+                    <video controls class="w-full h-48 object-cover"></video>
+                    <div class="recording-info p-4">
+                        <h3 class="text-lg font-bold text-gray-800 mb-2">${recording.question}</h3>
+                        <p class="text-gray-600 text-sm mb-2">Recorded: ${new Date(recording.timestamp).toLocaleString()}</p>
+                        ${recording.transcript ? `<p class="text-gray-700 text-sm mb-4 bg-gray-100 p-2 rounded"><strong>Transcript:</strong> ${recording.transcript}</p>` : ''}
+                        <div class="recording-actions flex gap-2">
+                            <button class="play-recording nickelodeon-btn nickelodeon-btn-blue flex-1">Play</button>
+                            <button class="delete-recording nickelodeon-btn nickelodeon-btn-red flex-1">Delete</button>
+                        </div>
+                    </div>
+                `;
+          
+          // Set up the video
+          const video = recordingItem.querySelector("video");
+          const url = URL.createObjectURL(recording.videoBlob);
+          video.src = url;
+          
+          // Set up event listeners
+          const playButton = recordingItem.querySelector(".play-recording");
+          playButton.addEventListener("click", () => {
+            video.play();
+          });
+          
+          const deleteButton = recordingItem.querySelector(".delete-recording");
+          deleteButton.addEventListener("click", async () => {
+            recordingItem.remove();
+            
+            // Delete from IndexedDB
+            if (recording.id) {
+              try {
+                await recordingDB.deleteRecording(recording.id);
+                console.log("Recording deleted from IndexedDB");
+              } catch (error) {
+                console.error("Error deleting recording from IndexedDB:", error);
+              }
+            }
+            
+            // Show message if no recordings left
+            if (recordingsList.children.length === 0) {
+              recordingsList.innerHTML =
+                '<p class="text-gray-500 col-span-full text-center py-8">No recordings yet. Start recording to see them here.</p>';
+            }
+          });
+          
+          // Add to the recordings list
+          recordingsList.appendChild(recordingItem);
         }
       }
     } catch (error) {
